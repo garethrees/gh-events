@@ -34,6 +34,15 @@ RSpec.describe GH::Events::Template do
 
       it { is_expected.to eq(described_class.new(templates['issues.opened'])) }
     end
+
+    context 'with an unknown dict' do
+      let(:event) { double(aspects: %w[issues opened]) }
+      let(:dict) { 'error' }
+
+      it 'raises UnknownDictFileError' do
+        expect { subject }.to raise_error(described_class::UnknownDictFileError)
+      end
+    end
   end
 
   describe '#render' do

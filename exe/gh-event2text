@@ -5,4 +5,9 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 require 'gh/events'
 
-puts GH::Events::Text.translate(STDIN.read, ARGV.first)
+begin
+  puts GH::Events::Text.translate(STDIN.read, ARGV.first)
+rescue GH::Events::Template::UnknownDictFileError => e
+  warn(e)
+  exit 1
+end

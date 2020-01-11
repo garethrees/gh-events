@@ -5,6 +5,8 @@ require 'yaml'
 module GH
   module Events
     class Template
+      class UnknownDictFileError < StandardError ; end
+
       def self.for_event(event, dict: nil)
         dict ||= 'plain'
 
@@ -35,8 +37,7 @@ module GH
 
         return dict if File.exists?(dict.to_s)
 
-        warn "Could not find dict file: #{dict}"
-        exit(1)
+        raise UnknownDictFileError, "Could not find dict file: #{dict}"
       end
 
       class ErbBinding < OpenStruct
