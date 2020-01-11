@@ -1,14 +1,39 @@
 require 'ostruct'
 require 'json'
 
-module GH::Events::Text
-  extend self
+module GH
+  module Events
+    class Text
+      def self.translate(json, dict)
+        event =
+          JSON.parse(
+            GH::Parser::WithRef.new(
+              GH::Parser::WithType.new(
+                JSON.parse(json)
+              )
+            ).to_json, object_class: OpenStruct
+          )
+        template = GH::Events::Template.for_event(event, dict: dict)
+        new(event, template).render
+      end
 
-  def translate(payload, dict)
-    payload_with_extras =
-       GH::Parser::WithRef.new(GH::Parser::WithType.new(JSON.parse(payload)))
-    event = JSON.parse(payload_with_extras.to_json, object_class: OpenStruct)
+      def initialize(event, template)
+        @event = event
+        @template = template
+      end
 
-    GH::Events::Template.for_event(event, dict: dict)&.render(event)
+      def render
+        template&.render(event)
+      end
+
+      def ==(other)
+        render == other.render
+      end
+
+      private
+
+      attr_reader :event
+      attr_reader :template
+    end
   end
 end
