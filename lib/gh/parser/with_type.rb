@@ -33,15 +33,16 @@ module GH
       def parse_type
         HEURISTICS.each do |type, characteristics|
           # all keys in `present` are there
-          x = ((characteristics['present'] || []) - keys)
+          x = characteristics.fetch('present', []) - keys
           next unless x.empty?
 
           # non of the keys in `absent` are there
-          y = ((characteristics['absent'] || []) & keys)
+          y = characteristics.fetch('absent', []) & keys
           next unless y.empty?
 
           # everything in `exactly` is there including the values
-          z = deep_stringified_keys.dup.merge(characteristics['exactly'] || {}) == deep_stringified_keys
+          exactly = characteristics.fetch('exactly', {})
+          z = deep_stringified_keys.dup.merge(exactly) == deep_stringified_keys
           next unless z
 
           n = characteristics['number_of_keys'] &&
