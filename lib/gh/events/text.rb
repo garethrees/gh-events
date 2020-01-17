@@ -1,5 +1,3 @@
-require 'yaml'
-require 'erb'
 require 'ostruct'
 require 'json'
 
@@ -12,10 +10,6 @@ module GH::Events::Text
   ASPECTS = %i[type action state]
 
   def translate(payload, dict)
-    dict ||= 'plain'
-
-    templates = YAML.load_file(templates_file(dict))
-
     event = JSON.parse(payload, object_class: OpenStruct)
     type = GH::Events.typeof(event).to_s
 
@@ -29,45 +23,11 @@ module GH::Events::Text
 
     # collect the aspects
     aspects = ASPECTS.map { |a| event.send(a) }.compact
+    event.aspects = aspects
 
     # add the specific type (stype) to the event
     event.stype = aspects * '.'
 
-    # lookup the template by type and all the specific types
-    _result = aspects.reduce({as: [], ts: []}) do |r, aspect|
-      r[:as] << aspect
-      r[:ts] << templates[r[:as] * '.']
-      r
-    end
-    template = _result[:ts].compact.last
-
-    # if the event was set to `false` abort
-    return nil if template === false
-
-    # if there is no template use a default
-    template ||= templates['no_template']
-
-    render(template, event)
+    GH::Events::Template.for_event(event, dict: dict)&.render(event)
   end
-
-  def templates_file(dict)
-    preset = File.expand_path(File.join(%w(.. .. .. .. res) << "#{dict}.yml"), __FILE__)
-    return preset if File.exists?(preset)
-
-    return dict if File.exists?(dict.to_s)
-
-    warn "Could not find dict file: #{dict}"
-    exit(1)
-  end
-
-  class ErbBinding < OpenStruct
-    def get_binding
-      return binding()
-    end
-  end
-
-  def render(template, data)
-    ERB.new(JSON.unparse(template)).result(ErbBinding.new(data).get_binding)
-  end
-
 end

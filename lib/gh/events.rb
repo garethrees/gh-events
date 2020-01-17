@@ -1,4 +1,5 @@
 require "gh/events/version"
+require "gh/events/template"
 require "gh/events/text"
 require 'hash'
 
