@@ -1,6 +1,6 @@
 require 'delegate'
 require 'yaml'
-require_relative '../../hash'
+require_relative '../../core_ext/hash'
 
 module GH
   module Parser
