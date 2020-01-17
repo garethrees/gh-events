@@ -12,7 +12,7 @@ RSpec.describe GH::Events do
       name = File.basename(file, '.json')
 
       it "detects events of type #{name}" do
-        payload = JSON.parse(File.read(File.join(path, file)))
+        payload = File.read(File.join(path, file))
         result = GH::Events.typeof(payload)
         expect(result).to eq(name.to_sym)
       end
